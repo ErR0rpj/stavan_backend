@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
+	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
 	"github.com/gorilla/mux"
+	"google.golang.org/api/option"
 )
+
+var client *firestore.Client
+var ctx context.Context
 
 // Dynamic banner model for backend. It is shown in song page in the app.
 type DynamicBanner struct {
@@ -22,20 +29,17 @@ type DynamicBanner struct {
 func createDynamicBanner(w http.ResponseWriter, r *http.Request) {
 
 	requstMap := mux.Vars(r)
-
-	fmt.Println("Creating dynamic banner for", requstMap["songId"])
-
-	dynamicBanner := DynamicBanner{
-		Id:         "pachchhkhan_bottom_sheet",
-		BannerType: "Pachhkhan",
-		ItemId:     "pachhkhan",
-		FetchFrom:  "None",
-	}
+	songId := requstMap["songId"]
+	fmt.Println("Creating dynamic banner for", songId)
+	dynamicBanner := getSongsDataFromFirebase(songId)
 
 	w.Header().Set("Content-Type", "application/")
 	json.NewEncoder(w).Encode(dynamicBanner)
 }
 
+//http://192.168.1.4:8082/get-dynamic-banner/TMB
+
+// Starts the server and starts APIs
 func handleRoutes() {
 	fmt.Println("Starting the server on port 8082...")
 	fmt.Println("")
@@ -47,6 +51,54 @@ func handleRoutes() {
 	log.Fatal(http.ListenAndServe(":8082", router))
 }
 
+// Initialzies the firebase with service account details
+func initializeServiceAccountForFirebase() *firestore.Client {
+	fmt.Println("Initialize service account for Firebase.")
+
+	sa := option.WithCredentialsFile("service-account-credentials.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println("Service account initialized.")
+	fmt.Println("")
+
+	return client
+}
+
+func getSongsDataFromFirebase(songId string) DynamicBanner {
+	fmt.Println("Getting songs data for", songId)
+
+	docSnap, err := client.Collection("songs").Doc(songId).Get(ctx)
+	if err != nil {
+		log.Fatalln("Error getting song data from firestore", err)
+	}
+
+	songMap := docSnap.Data()
+
+	dynamicBanner := DynamicBanner{
+		Id:         songId,
+		BannerType: songMap["category"].(string),
+		ItemId:     "pachhkhan",
+		FetchFrom:  "None",
+	}
+
+	return dynamicBanner
+}
+
 func main() {
+	//Get firestore client
+	ctx = context.Background()
+	client = initializeServiceAccountForFirebase()
+	defer client.Close()
+
 	handleRoutes()
+
+	defer client.Close()
 }
