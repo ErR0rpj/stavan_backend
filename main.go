@@ -1,7 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // Dynamic banner model for backend. It is shown in song page in the app.
@@ -14,17 +19,34 @@ type DynamicBanner struct {
 }
 
 // It calculates which banner should be shown for the particular song and then creates the dynamic banner and returns it.
-func createDynamicBanner() {
+func createDynamicBanner(w http.ResponseWriter, r *http.Request) {
+
+	requstMap := mux.Vars(r)
+
+	fmt.Println("Creating dynamic banner for", requstMap["songId"])
+
 	dynamicBanner := DynamicBanner{
-		Id:         "",
-		BannerType: "",
-		ItemId:     "",
-		FetchFrom:  "",
+		Id:         "pachchhkhan_bottom_sheet",
+		BannerType: "Pachhkhan",
+		ItemId:     "pachhkhan",
+		FetchFrom:  "None",
 	}
 
-	fmt.Println(dynamicBanner)
+	w.Header().Set("Content-Type", "application/")
+	json.NewEncoder(w).Encode(dynamicBanner)
+}
+
+func handleRoutes() {
+	fmt.Println("Starting the server on port 8082...")
+	fmt.Println("")
+
+	router := mux.NewRouter()
+	router.HandleFunc("/get-dynamic-banner/{songId}", createDynamicBanner).Methods("GET")
+
+	//This creates a server at the port 8082
+	log.Fatal(http.ListenAndServe(":8082", router))
 }
 
 func main() {
-	createDynamicBanner()
+	handleRoutes()
 }
