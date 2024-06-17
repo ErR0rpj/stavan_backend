@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // Dynamic banner model for backend. It is shown in song page in the app.
 type Playlist struct {
@@ -8,19 +11,19 @@ type Playlist struct {
 	Id          string `json:"id"`
 	Title       string `json:"title"`
 	Subtitle    string `json:"subtitle"`
-	PlaylistTag string `json:"playlist_tag"`
-	///This can be: genre, category, tirthankar, etc.
-	PlaylistTagType string   `json:"playlist_tag_type"`
+	PlaylistTag string `json:"playlistTag"`
+	//This can be: genre, category, tirthankar, etc.
+	PlaylistTagType string   `json:"playlistTagType"`
 	Songs           []string `json:"songs"`
 }
 
-//This validates if the playlist object can be formed or not.
-//This should be used whenever an playlist object is created.
-func ValidatePlaylist(playlist *Playlist) *Playlist {
+// This validates if the playlist object can be formed or not.
+// This should be used whenever an playlist object is created.
+func ValidatePlaylist(playlist Playlist) (Playlist, error) {
 	if playlist.Id == "" || playlist.Title == "" {
 		fmt.Println("Playlist has been invalidated: ", playlist.Id, playlist.Title)
-		return nil
+		return playlist, errors.New("playlist invalidated")
 	} else {
-		return playlist
+		return playlist, nil
 	}
 }

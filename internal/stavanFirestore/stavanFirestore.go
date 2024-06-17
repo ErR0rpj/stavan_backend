@@ -25,13 +25,16 @@ func GetAllPlaylists() ([]models.Playlist, error) {
 		if err != nil {
 			return nil, err
 		}
-		var playlist *models.Playlist
-		doc.DataTo(playlist)
-		playlist = models.ValidatePlaylist(playlist)
+		var playlist models.Playlist
+		doc.DataTo(&playlist)
 
-		if playlist != nil {
-			playlists = append(playlists, *playlist)
+		playlist, err = models.ValidatePlaylist(playlist)
+		if err != nil {
+			return nil, err
+		} else {
+			playlists = append(playlists, playlist)
 		}
+
 	}
 
 	return playlists, nil

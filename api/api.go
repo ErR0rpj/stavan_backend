@@ -25,9 +25,8 @@ func HandleRoutes() {
 	log.Fatal(http.ListenAndServe(":8082", router))
 }
 
+// Fetches all the playlist from the database and sends back the response in json.
 func getAllplaylist(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Getting all playlists.")
-
 	var playlists []models.Playlist
 	playlists, err := stavanFirestore.GetAllPlaylists()
 
@@ -42,11 +41,6 @@ func getAllplaylist(w http.ResponseWriter, r *http.Request) {
 		//or the query to database is wrong.
 		http.Error(w, "501 Not Implemented Error", http.StatusNotImplemented)
 		return
-	} else {
-		for i := range playlists {
-			playlist := playlists[i]
-			fmt.Println(playlist.Id)
-		}
 	}
 
 	w.Header().Set("Content-Type", "application/")
