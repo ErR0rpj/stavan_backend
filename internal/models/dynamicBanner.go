@@ -1,4 +1,4 @@
-package dynamicBanner
+package models
 
 // Dynamic banner model for backend. It is shown in song page in the app.
 type DynamicBanner struct {

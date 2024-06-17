@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	api "main/api"
+	"main/api"
 	config "main/config"
 )
 
@@ -14,4 +14,5 @@ func main() {
 	config.CLIENT = config.InitializeServiceAccountForFirebase()
 
 	api.HandleRoutes()
+
 }

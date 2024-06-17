@@ -29,6 +29,7 @@ func InitializeServiceAccountForFirebase() *firestore.Client {
 	}
 
 	fmt.Println("Service account initialized.")
+	fmt.Println("")
 
 	return CLIENT
 }

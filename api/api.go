@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	dynamicBanner "main/internal/models"
+	models "main/internal/models"
 	stavanFirestore "main/internal/stavanFirestore"
 
 	"github.com/gorilla/mux"
@@ -19,10 +19,38 @@ func HandleRoutes() {
 	fmt.Println("")
 
 	router := mux.NewRouter()
-	router.HandleFunc("/get-dynamic-banner", createDynamicBanner).Methods("GET")
+	router.HandleFunc("/get-all-playlists", getAllplaylist).Methods("GET")
 
 	//This creates a server at the port 8082
 	log.Fatal(http.ListenAndServe(":8082", router))
+}
+
+func getAllplaylist(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Getting all playlists.")
+
+	var playlists []models.Playlist
+	playlists, err := stavanFirestore.GetAllPlaylists()
+
+	if err != nil {
+		log.Default().Println("Throwing 500 Internal Server Error:", err)
+		//It happens when the there might be an error in code or the data from the database is not interpreted properly.
+		http.Error(w, "500 Internal Server Error: "+err.Error(), http.StatusInternalServerError)
+		return
+	} else if len(playlists) == 0 {
+		log.Default().Println("Throwing 501 Not Implemented Error: Playlists list is nil, error might be in fetching firestore. URL: " + r.URL.String())
+		//Throws 501 as the playlist list was empty. This might be due to playlist list actually being empty
+		//or the query to database is wrong.
+		http.Error(w, "501 Not Implemented Error", http.StatusNotImplemented)
+		return
+	} else {
+		for i := range playlists {
+			playlist := playlists[i]
+			fmt.Println(playlist.Id)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/")
+	json.NewEncoder(w).Encode(playlists)
 }
 
 // http://192.168.1.4:8082/get-dynamic-banner/TMB&false
@@ -58,8 +86,8 @@ func createDynamicBanner(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Creating dynamic banner for", songId, isLiked)
-	var dynamicBanner *dynamicBanner.DynamicBanner
-	dynamicBanner, err = stavanFirestore.GetSongsDataFromFirebase(songId)
+	var dynamicBanner *models.DynamicBanner
+	dynamicBanner, err = stavanFirestore.GetSongsData(songId)
 	if err != nil {
 		log.Default().Println("Throwing 400 Bad Request:", err)
 		//throw error that isLiked should either be true/false

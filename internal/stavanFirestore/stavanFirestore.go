@@ -6,11 +6,39 @@ import (
 	"log"
 
 	config "main/config"
-	dynamicBanner "main/internal/models"
+	models "main/internal/models"
+
+	"google.golang.org/api/iterator"
 )
 
+// /Fetches all the playlist from firestore
+func GetAllPlaylists() ([]models.Playlist, error) {
+	fmt.Println("Getting all the playlists from firestore")
+
+	iter := config.CLIENT.Collection("playlists").Documents(config.CTX)
+	var playlists []models.Playlist
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		var playlist *models.Playlist
+		doc.DataTo(playlist)
+		playlist = models.ValidatePlaylist(playlist)
+
+		if playlist != nil {
+			playlists = append(playlists, *playlist)
+		}
+	}
+
+	return playlists, nil
+}
+
 // Gets the songs data (not the likes, shares, etc count) for a particular song
-func GetSongsDataFromFirebase(songId string) (*dynamicBanner.DynamicBanner, error) {
+func GetSongsData(songId string) (*models.DynamicBanner, error) {
 	fmt.Println("Getting songs data for", songId)
 
 	docSnap, err := config.CLIENT.Collection("songs").Doc(songId).Get(config.CTX)
@@ -21,7 +49,7 @@ func GetSongsDataFromFirebase(songId string) (*dynamicBanner.DynamicBanner, erro
 
 	songMap := docSnap.Data()
 
-	dynamicBanner := dynamicBanner.DynamicBanner{
+	dynamicBanner := models.DynamicBanner{
 		Id:         songId,
 		BannerType: songMap["category"].(string),
 		ItemId:     "pachhkhan",
