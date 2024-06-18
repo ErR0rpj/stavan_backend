@@ -11,7 +11,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// /Fetches all the playlist from firestore
+// Fetches all the playlist from firestore
 func GetAllPlaylists() ([]models.Playlist, error) {
 	fmt.Println("Getting all the playlists from firestore")
 
@@ -31,33 +31,64 @@ func GetAllPlaylists() ([]models.Playlist, error) {
 		playlist, err = models.ValidatePlaylist(playlist)
 		if err != nil {
 			return nil, err
-		} else {
-			playlists = append(playlists, playlist)
 		}
+		playlists = append(playlists, playlist)
 
 	}
 
 	return playlists, nil
 }
 
+// /Fetches all the playlist from firestore
+func GetSongsFromPlaylist(playlistTag string) ([]models.Song, error) {
+	fmt.Println("Getting all the playlists from firestore")
+
+	//When getting data from the firestore id = playlistTag.
+	playlistSnap, err := config.CLIENT.Collection("playlists").Doc(playlistTag).Get(config.CTX)
+	if err != nil {
+		log.Default().Println("Error getting playlist data from firestore. Check the playlistTag!", err)
+		return nil, errors.New("Error getting songs for playlist: " + err.Error())
+	}
+
+	var playlist models.Playlist
+	playlistSnap.DataTo(&playlist)
+	playlist, err = models.ValidatePlaylist(playlist)
+	if err != nil {
+		return nil, err
+	}
+	songIds := playlist.Songs
+	if len(songIds) == 0 {
+		return nil, errors.New("No songs found for playlist: " + playlistTag)
+	}
+
+	var songs []models.Song
+	for _, songId := range songIds {
+		song, err := GetSongsData(songId)
+		if err != nil {
+			return nil, err
+		}
+		songs = append(songs, song)
+	}
+
+	return songs, nil
+}
+
 // Gets the songs data (not the likes, shares, etc count) for a particular song
-func GetSongsData(songId string) (*models.DynamicBanner, error) {
+func GetSongsData(songId string) (models.Song, error) {
 	fmt.Println("Getting songs data for", songId)
 
+	var song models.Song
 	docSnap, err := config.CLIENT.Collection("songs").Doc(songId).Get(config.CTX)
 	if err != nil {
 		log.Default().Println("Error getting song data from firestore. Check the songId!", err)
-		return nil, errors.New("Error getting song data from firestore. Check the songId!: " + err.Error())
+		return song, errors.New("Error getting song data from firestore. Check the songId!: " + err.Error())
 	}
 
-	songMap := docSnap.Data()
-
-	dynamicBanner := models.DynamicBanner{
-		Id:         songId,
-		BannerType: songMap["category"].(string),
-		ItemId:     "pachhkhan",
-		FetchFrom:  "None",
+	docSnap.DataTo(&song)
+	song, err = models.ValidateSong(song)
+	if err != nil {
+		return song, err
 	}
 
-	return &dynamicBanner, nil
+	return song, nil
 }

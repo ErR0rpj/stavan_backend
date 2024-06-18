@@ -20,9 +20,45 @@ func HandleRoutes() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/get-all-playlists", getAllplaylist).Methods("GET")
+	router.HandleFunc("/get-playlist-songs", getPlaylistSongs).Methods("GET")
 
 	//This creates a server at the port 8082
 	log.Fatal(http.ListenAndServe(":8082", router))
+}
+
+// Fetches all the playlist from the database and sends back the response in json.
+func getPlaylistSongs(w http.ResponseWriter, r *http.Request) {
+	requestMap := r.URL.Query()
+	var playlistTag string
+
+	has := requestMap.Has("playlistTag")
+	if has {
+		playlistTag = requestMap.Get("playlistTag")
+	} else {
+		log.Default().Println("Throwing 400 Bad Request: playlistTag parameter cannot be empty!")
+		//Throw error that playlistTag is not provided.
+		http.Error(w, "400 Bad Request: pass playlistTag parameter!", http.StatusBadRequest)
+		return
+	}
+
+	var songs []models.Song
+	songs, err := stavanFirestore.GetSongsFromPlaylist(playlistTag)
+
+	if err != nil {
+		log.Default().Println("Throwing 500 Internal Server Error:", err)
+		//It happens when the there might be an error in code or the data from the database is not interpreted properly.
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+		return
+	} else if len(songs) == 0 {
+		log.Default().Println("Throwing 501 Not Implemented Error: Songs list is nil, error might be in fetching firestore: " + r.URL.String())
+		//Throws 501 as the playlist list was empty. This might be due to playlist list actually being empty
+		//or the query to database is wrong.
+		http.Error(w, "501 Not Implemented Error", http.StatusNotImplemented)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/")
+	json.NewEncoder(w).Encode(songs)
 }
 
 // Fetches all the playlist from the database and sends back the response in json.
@@ -33,7 +69,7 @@ func getAllplaylist(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Default().Println("Throwing 500 Internal Server Error:", err)
 		//It happens when the there might be an error in code or the data from the database is not interpreted properly.
-		http.Error(w, "500 Internal Server Error: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 		return
 	} else if len(playlists) == 0 {
 		log.Default().Println("Throwing 501 Not Implemented Error: Playlists list is nil, error might be in fetching firestore. URL: " + r.URL.String())
@@ -81,16 +117,19 @@ func createDynamicBanner(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Creating dynamic banner for", songId, isLiked)
 	var dynamicBanner *models.DynamicBanner
-	dynamicBanner, err = stavanFirestore.GetSongsData(songId)
+	var song models.Song
+	song, err = stavanFirestore.GetSongsData(songId)
+
+	dynamicBanner = &models.DynamicBanner{
+		Id:         songId,
+		BannerType: song.Category,
+		ItemId:     "pachhkhan",
+		FetchFrom:  "None",
+	}
 	if err != nil {
 		log.Default().Println("Throwing 400 Bad Request:", err)
 		//throw error that isLiked should either be true/false
-		http.Error(w, "400 Bad Request: "+err.Error(), http.StatusBadRequest)
-		return
-	} else if dynamicBanner == nil {
-		log.Default().Println("Throwing 500 Internal Server Error: Dynamic banner is nil, error might be in fetching firestore. URL: " + r.URL.String())
-		//throw error that isLiked should either be true/false
-		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, "400 Bad Request", http.StatusBadRequest)
 		return
 	}
 
