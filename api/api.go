@@ -19,8 +19,10 @@ func HandleRoutes() {
 	fmt.Println("")
 
 	router := mux.NewRouter()
-	router.HandleFunc("/get-all-playlists", getAllplaylist).Methods("GET")
-	router.HandleFunc("/get-playlist-songs", getPlaylistSongs).Methods("GET")
+	router.HandleFunc("/playlists", getAllplaylist).Methods("GET")
+	router.HandleFunc("/playlists/{playlistTag}", getPlaylistSongs).Methods("GET")
+	// router.HandleFunc("/songs", getTrendingSongs).Methods("GET")
+	// router.HandleFunc("/songs/{songId}", getSongsData).Methods("GET")
 
 	//This creates a server at the port 8082
 	log.Fatal(http.ListenAndServe(":8082", router))
@@ -28,13 +30,9 @@ func HandleRoutes() {
 
 // Fetches all the playlist from the database and sends back the response in json.
 func getPlaylistSongs(w http.ResponseWriter, r *http.Request) {
-	requestMap := r.URL.Query()
-	var playlistTag string
+	playlistTag := mux.Vars(r)["playlistTag"]
 
-	has := requestMap.Has("playlistTag")
-	if has {
-		playlistTag = requestMap.Get("playlistTag")
-	} else {
+	if playlistTag == "" {
 		log.Default().Println("Throwing 400 Bad Request: playlistTag parameter cannot be empty!")
 		//Throw error that playlistTag is not provided.
 		http.Error(w, "400 Bad Request: pass playlistTag parameter!", http.StatusBadRequest)
