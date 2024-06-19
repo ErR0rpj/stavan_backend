@@ -2,8 +2,7 @@ package main
 
 import (
 	"context"
-
-	"main/api"
+	"main/admin"
 	config "main/config"
 )
 
@@ -13,6 +12,6 @@ func main() {
 	//Initializes the account for firebase
 	config.CLIENT = config.InitializeServiceAccountForFirebase()
 
-	api.HandleRoutes()
-
+	// api.HandleRoutes()
+	admin.AdminRoutes()
 }

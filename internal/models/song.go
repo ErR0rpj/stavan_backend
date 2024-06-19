@@ -36,11 +36,10 @@ type Song struct {
 	SongNameHindi   string `json:"songNameHindi"`
 	TodayViews      int    `json:"todayViews"`
 	TotalViews      int    `json:"totalViews"`
-	//Float is causing issues when reading as json from firestore. So, int is kept and will be multiplied by 1000
-	TrendPoints      float64  `json:"trendPoints"`
-	YoutubeLink      string   `json:"youtubeLink"`
-	StoryLinks       []string `story:"storyLinks"`
-	LastModifiedTime int      `json:"lastModifiedTime"`
+
+	TrendPoints      float64 `json:"trendPoints"`
+	YoutubeLink      string  `json:"youtubeLink"`
+	LastModifiedTime string  `json:"lastModifiedTime"`
 }
 
 // This validates if the song object can be formed or not.
