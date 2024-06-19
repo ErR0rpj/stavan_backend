@@ -1,6 +1,7 @@
 package stavanFirestore
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -26,7 +27,11 @@ func GetAllPlaylists() ([]models.Playlist, error) {
 			return nil, err
 		}
 		var playlist models.Playlist
-		doc.DataTo(&playlist)
+		bytes, _ := json.Marshal(doc.Data())
+		err = json.Unmarshal(bytes, &playlist)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		playlist, err = models.ValidatePlaylist(playlist)
 		if err != nil {
@@ -44,18 +49,24 @@ func GetSongsFromPlaylist(playlistTag string) ([]models.Song, error) {
 	fmt.Println("Getting all the playlists from firestore")
 
 	//When getting data from the firestore id = playlistTag.
-	playlistSnap, err := config.CLIENT.Collection("playlists").Doc(playlistTag).Get(config.CTX)
+	doc, err := config.CLIENT.Collection("playlists").Doc(playlistTag).Get(config.CTX)
 	if err != nil {
 		log.Default().Println("Error getting playlist data from firestore. Check the playlistTag!", err)
 		return nil, errors.New("Error getting songs for playlist: " + err.Error())
 	}
 
 	var playlist models.Playlist
-	playlistSnap.DataTo(&playlist)
+	bytes, _ := json.Marshal(doc.Data())
+	err = json.Unmarshal(bytes, &playlist)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	playlist, err = models.ValidatePlaylist(playlist)
 	if err != nil {
 		return nil, err
 	}
+
 	songIds := playlist.Songs
 	if len(songIds) == 0 {
 		return nil, errors.New("No songs found for playlist: " + playlistTag)
@@ -78,13 +89,18 @@ func GetSongsData(songId string) (models.Song, error) {
 	fmt.Println("Getting songs data for", songId)
 
 	var song models.Song
-	docSnap, err := config.CLIENT.Collection("songs").Doc(songId).Get(config.CTX)
+	doc, err := config.CLIENT.Collection("songs").Doc(songId).Get(config.CTX)
 	if err != nil {
 		log.Default().Println("Error getting song data from firestore. Check the songId!", err)
 		return song, errors.New("Error getting song data from firestore. Check the songId!: " + err.Error())
 	}
 
-	docSnap.DataTo(&song)
+	bytes, _ := json.Marshal(doc.Data())
+	err = json.Unmarshal(bytes, &song)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	song, err = models.ValidateSong(song)
 	if err != nil {
 		return song, err

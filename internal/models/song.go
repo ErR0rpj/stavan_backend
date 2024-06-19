@@ -29,13 +29,14 @@ type Song struct {
 	Popularity   int    `json:"popularity"`
 	Shares       int    `json:"shares"`
 	//This is the production house who own the rights of the stavan
-	Production       string   `json:"production"`
-	SearchKeywords   string   `json:"searchKeywords"`
-	SingerName       string   `json:"singerName"`
-	SongNameEnglish  string   `json:"songNameEnglish"`
-	SongNameHindi    string   `json:"songNameHindi"`
-	TodayViews       string   `json:"todayViews"`
-	TotalViews       string   `json:"totalViews"`
+	Production      string `json:"production"`
+	SearchKeywords  string `json:"searchKeywords"`
+	SingerName      string `json:"singerName"`
+	SongNameEnglish string `json:"songNameEnglish"`
+	SongNameHindi   string `json:"songNameHindi"`
+	TodayViews      int    `json:"todayViews"`
+	TotalViews      int    `json:"totalViews"`
+	//Float is causing issues when reading as json from firestore. So, int is kept and will be multiplied by 1000
 	TrendPoints      float64  `json:"trendPoints"`
 	YoutubeLink      string   `json:"youtubeLink"`
 	StoryLinks       []string `story:"storyLinks"`
