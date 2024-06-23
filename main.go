@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"main/api"
-	config "main/config"
+	"main/config"
 )
 
 func main() {

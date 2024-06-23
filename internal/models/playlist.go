@@ -13,8 +13,14 @@ type Playlist struct {
 	Subtitle    string `json:"subtitle"`
 	PlaylistTag string `json:"playlistTag"`
 	//This can be: genre, category, tirthankar, etc.
-	PlaylistTagType string   `json:"playlistTagType"`
-	Songs           []string `json:"songs"`
+	PlaylistTagType  string   `json:"playlistTagType"`
+	Songs            []string `json:"songs"`
+	TodayViews       int      `json:"todayViews"`
+	TotalViews       int      `json:"totalViews"`
+	Popularity       int      `json:"popularity"`
+	Shares           int      `json:"shares"`
+	TrendPoints      float64  `json:"trendPoints"`
+	LastModifiedTime string   `json:"lastModifiedTime"`
 }
 
 // This validates if the playlist object can be formed or not.
