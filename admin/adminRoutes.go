@@ -26,7 +26,7 @@ func AdminRoutes() {
 
 // Fetches the song and its details
 func createPlaylistsWithSongs(w http.ResponseWriter, r *http.Request) {
-	err := utilities.TransferDataFromFlutterFirestoreToWebFirestore()
+	err := utilities.WritePlaylistsWithSongs()
 
 	if err != nil {
 		log.Default().Println("Throwing 500 Internal Server Error:", err)

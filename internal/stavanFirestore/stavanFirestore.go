@@ -84,6 +84,38 @@ func GetSongsFromPlaylist(playlistTag string) ([]models.Song, error) {
 	return songs, nil
 }
 
+// Gets all the songs and give back as list
+func GetAllSongs() ([]models.Song, error) {
+	fmt.Println("Getting all the songs from firestore")
+
+	iter := config.CLIENT.Collection("songs").Documents(config.CTX)
+	var songs []models.Song
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		var song models.Song
+		bytes, _ := json.Marshal(doc.Data())
+		err = json.Unmarshal(bytes, &song)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		song, err = models.ValidateSong(song)
+		if err != nil {
+			return nil, err
+		}
+		songs = append(songs, song)
+
+	}
+
+	return songs, nil
+}
+
 // Gets the songs data (not the likes, shares, etc count) for a particular song
 func GetSongsData(songId string) (models.Song, error) {
 	fmt.Println("Getting songs data for", songId)
