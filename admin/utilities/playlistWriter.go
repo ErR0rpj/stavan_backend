@@ -200,10 +200,10 @@ func definePlaylists() []models.Playlist {
 	playlistList = append(playlistList, playlist)
 
 	//Nakoda
-	playlist.Id = "nokoda"
+	playlist.Id = "nakoda"
 	playlist.Title = "Nakoda Bheruji"
 	playlist.Subtitle = "Nakoda Bhairav Bhajans"
-	playlist.PlaylistTag = "nokoda"
+	playlist.PlaylistTag = "nakoda"
 	playlist.PlaylistTagType = "tirthankar"
 	playlist.TotalViews = 0
 	playlist.TodayViews = 0
