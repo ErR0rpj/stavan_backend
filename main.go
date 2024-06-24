@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"main/admin"
+	"main/api"
 	"main/config"
 )
 
@@ -12,8 +12,8 @@ func main() {
 	//Initializes the account for firebase
 	config.CLIENT = config.InitializeServiceAccountForFirebase()
 
-	// api.HandleRoutes()
+	api.HandleRoutes()
 
 	//Enable this and disable above to use admin APIs
-	admin.AdminRoutes()
+	// admin.AdminRoutes()
 }
